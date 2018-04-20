@@ -2,10 +2,26 @@ import praw
 import mysql.connector
 from mysql.connector import errorcode
 from auth import *
+from kivy.app import App
+from kivy.uix.boxlayout import BoxLayout
+from kivy.uix.button import Label
 
-reddit = praw.Reddit(client_id='3GkF4Me_oLmFYg',
-                     client_secret='0pElYWgjSUI82canPkHstrkBEik',
-                     user_agent='SubredditFinder')
+
+class TestWindow(BoxLayout):
+	pass
+
+class TestApp(App):
+	def build(self):
+		self.load_kv('window.kv')
+		return TestWindow()
+
+TestApp().run()
+
+
+
+#reddit = praw.Reddit(client_id=redditClientID,
+#                     client_secret=redditClientSecret,
+#                     user_agent=redditUserAgent)
 
 #subreddit = reddit.random_subreddit(False)
 #print(subreddit.display_name)
