@@ -1,27 +1,39 @@
 import praw
 import random
+import threading
 import mysql.connector
 from mysql.connector import errorcode
 from auth import *
 from kivy.app import App
 from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.button import Label
-
+from kivy.clock import Clock
 #SQL Layout
 #name:string - url:string - subscribers:int - nsfw:int - description:string
 
+#Global Variables
+cursor = ''
+reddit = ''
 
-#class TestWindow(BoxLayout):
-#	pass
+class TestWindow(BoxLayout):
+	pass
 
-#class TestApp(App):
-#	def build(self):
-#		self.load_kv('window.kv')
-#		return TestWindow()
+class TestApp(App):
+	event = ''
 
-#TestApp().run()
+	def build(self):
+		self.load_kv('window.kv')
+		return TestWindow()
+
+	def scan(self, *args):
+		global cursor, reddit
+		threading.Thread(target = scanReddit(cursor, reddit)).start()
+	def stopScan(self):
+		pass
 
 def main():
+	global cursor
+	global reddit
 	try:
 		cnx = mysql.connector.connect(user=authUser, password=authPassword, host=authHost, database=authDatabase)
 	except mysql.connector.error as err:
@@ -32,19 +44,20 @@ def main():
 		else:
 			print(err)
 	else:
-		cura = cnx.cursor(buffered=True)
-		reddit = praw.Reddit(client_id=redditClientID,
-						 client_secret=redditClientSecret,
-						 user_agent=redditUserAgent)
+		cursor = cnx.cursor(buffered=True)	
 		cnx.autocommit = True;
-		for i in range(100):
-			query, data = createQueryFromRandomSubreddit(reddit)
-			print(i)
-			cura.execute(query, data)
+		reddit = praw.Reddit(client_id=redditClientID, client_secret=redditClientSecret, user_agent=redditUserAgent)
+		
+		TestApp().run()
 
 		cnx.close()
 
-
+def scanReddit(cursor, reddit):
+	#for i in range(10):
+	while True:
+		query, data = createQueryFromRandomSubreddit(reddit)
+		print('another one added')
+		cursor.execute(query, data)
 
 def createQueryFromRandomSubreddit(reddit):
 	nsfwSearch = False;
