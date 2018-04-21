@@ -36,48 +36,24 @@ def main():
 		reddit = praw.Reddit(client_id=redditClientID,
 						 client_secret=redditClientSecret,
 						 user_agent=redditUserAgent)
-		for i in range(10):
+		cnx.autocommit = True;
+		for i in range(100):
 			query, data = createQueryFromRandomSubreddit(reddit)
-			#print(i)
-			#print(query)
-			#print(data)
+			print(i)
 			cura.execute(query, data)
-			cnx.commit()
+
 		cnx.close()
 
 
-#subreddit = reddit.random_subreddit(False)
-#print(subreddit.display_name)
-#print(subreddit.public_description)
-#print(subreddit.subscribers)
-#print(subreddit.url)
-#print(subreddit.over18)
-
-#try:
-#	cnx = mysql.connector.connect(user=authuser, password=authpassword, host=authhost, database=authdatabase)
-#except mysql.connector.error as err:
-#	if err.errno == errorcode.er_access_denied_error:
-#		print("something is wrong with your user name or password")
-#	elif err.errno == errorcode.er_bad_db_error:
-#		print("database does not exist")
-#	else:
-#		print(err)
-#else:
-#	cura = cnx.cursor(buffered=true)
-#	query = ("insert into subreddits values (%s)")
-#	data = ('/r/deepfriedmemes',)
-#	cura.execute(query, data)
-#	cnx.commit()
-#	cnx.close()
 
 def createQueryFromRandomSubreddit(reddit):
 	nsfwSearch = False;
 	if random.randint(0, 1) == 0:
 		nsfwSearch = True;
 	subreddit = reddit.random_subreddit(nsfwSearch)
-	query = "INSERT INTO subreddits VALUES (%s, %s, %s, %s, %s)"
+	query = "INSERT INTO subreddits SELECT %s, %s, %s, %s, %s WHERE NOT EXISTS (SELECT * FROM subreddits WHERE name = %s)"
 	data = (subreddit.display_name, generateURL(subreddit.url), subreddit.subscribers, getNSFWBit(subreddit.over18), 
-		 getShortDesription(subreddit.public_description))
+		 getShortDesription(subreddit.public_description), subreddit.display_name)
 	return query, data
 
 def generateURL(shortURL):
