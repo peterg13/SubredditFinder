@@ -6,6 +6,8 @@ from mysql.connector import errorcode
 from auth import *
 from kivy.app import App
 from kivy.uix.boxlayout import BoxLayout
+from kivy.uix.screenmanager import ScreenManager, Screen
+from kivy.properties import ObjectProperty
 from kivy.uix.button import Label
 from kivy.clock import Clock
 
@@ -17,17 +19,12 @@ cursor = ''
 reddit = ''
 scanCondition = 1
 
-#the GUI window that opens
-class TestWindow(BoxLayout):
+#the GUI window that opens. settings in window.kv
+class MainScreen(Screen):
 	pass
 
-#all the code and functions for the GUI
-class TestApp(App):
-	#launches the window
-	def build(self):
-		self.load_kv('window.kv')
-		return TestWindow()
-
+#the GUI for the Scan popup screen. settings in window.kv
+class ScanScreen(Screen):
 	#when the scan button is called, resets the scan condition and creates a new thread to start scanning
 	def scan(self, *args):
 		global scanCondition
@@ -39,6 +36,17 @@ class TestApp(App):
 	def stopScan(self):
 		global scanCondition
 		scanCondition = 0
+
+class Manager(ScreenManager):
+	mainScreen = ObjectProperty(None)
+	scanScreen = ObjectProperty(None)
+
+#all the code and functions for the GUI
+class MainApp(App):
+	#launches the window
+	def build(self):
+		self.load_kv('window.kv')
+		return Manager()
 
 #here we define the thread that will scan through reddit.
 class ScanThread(threading.Thread):
@@ -74,7 +82,7 @@ def main():
 		reddit = praw.Reddit(client_id=redditClientID, client_secret=redditClientSecret, user_agent=redditUserAgent)
 		
 		#initiates the GUI
-		TestApp().run()
+		MainApp().run()
 
 		#closes the SQL connection when the program is finished
 		cnx.close()
@@ -87,6 +95,7 @@ def scanReddit(cursor, reddit):
 		query, data = createQueryFromRandomSubreddit(reddit)
 		print('another subreddit added')
 		cursor.execute(query, data)
+	
 
 #generates the query to be sent to our SQL server.  Returns 2 values. query: the query part of the text such as "SELECT * FROM" and "WHERE" etc.  data: the value portion of the query such as 'subreddits' and column values
 #since we have to declare if the search will result in a NSFW or SFW subreddit I used a random value (0 or 1) to decide the search so that we can get a broad range of subreddits

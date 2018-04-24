@@ -1,7 +1,53 @@
-<TestWindow>:
+#:import RiseInTransition kivy.uix.screenmanager.RiseInTransition
+#:import FallOutTransition kivy.uix.screenmanager.FallOutTransition
+
+<MainScreen>:
 	Button:
 		text:"Scan"
-		on_press: app.scan()
+		on_press: 
+			root.manager.transition = RiseInTransition()
+			root.manager.transition.duration = 1
+			root.manager.current = "Scan Screen"
+		pos_hint: {'left': 1, 'bottom': 1}
+		size_hint: .5, .5
 	Button:
-		text:"Stop"
-		on_press: app.stopScan()
+		text:"close app"
+		on_press: app.stop()
+		pos_hint: {'right': 1, 'bottom': 1}
+		size_hint: .5, .5
+
+<ScanScreen>
+	on_enter: root.scan()
+	Label:
+		text: 'Scanning...'
+		color: 1, 1, 1, 1
+		pos_hint: {'left': 1, 'top': 1}
+		size_hint: 1, .5
+	Button:
+		text: "Stop Scan"
+		on_press: root.stopScan()
+		pos_hint: {'left': 1, 'bottom': 1}
+		size_hint: .5, .5
+	Button:
+		text: "return to main screen"
+		on_press:
+			root.manager.transition = FallOutTransition()
+			root.manager.transition.duration = 1
+			root.manager.current = 'Main Screen'
+		pos_hint: {'right': 1, 'bottom': 1}
+		size_hint: .5, .5
+
+<Manager>:
+	id: screen_manager
+	mainScreen: mainScreen
+	scanScreen: scanScreen
+	
+	MainScreen:
+		id: mainScreen
+		name: "Main Screen"
+		manager: screen_manager
+
+	ScanScreen:
+		id: scanScreen
+		name: "Scan Screen"
+		manager: screen_manager
